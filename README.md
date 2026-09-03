@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="banner.png" alt="CN² banner" width="100%">
+</p>
+
 # CN² — Checkpointed Newton-Nesterov
 
 Stage-wise hybrid optimization for smooth nonconvex objectives, alternating

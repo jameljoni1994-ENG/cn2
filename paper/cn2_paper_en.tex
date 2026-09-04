@@ -363,10 +363,14 @@ and often succeeds where vanilla Newton, Newton--CG, and L-BFGS fail, especially
 moderate-dimensional regime. It is insensitive to the jump length $K_0$ and offers a clean
 $\tau$ trade-off.
 
-Future work will (i)~move to the large-$n$ regime using Hessian-vector products so that
-full Newton is unnecessary; (ii)~establish rigorous convergence of the checkpoint
-subsequence $\{x_{jK}\}$ and the two-phase decay of the decrement; and (iii)~release an
-open-source, reproducible package.
+Future work will (i)~move to the large-$n$ regime using Hessian-vector
+products so that full Newton is unnecessary, while preserving the
+Newton-decrement gate through a conjugate-gradient solver;
+(ii)~tighten the two-phase theory of \cref{thm:checkpoint} to a global
+(nonconvex) rate via a Kurdyka--{\L}ojasiewicz-type bound, and quantify the
+per-checkpoint Hessian cost so the complexity-per-$\varepsilon$ is explicit;
+and (iii)~grow the open-source package (CI, packaging, GPU backends) released
+with this work.
 
 \begin{thebibliography}{9}
 

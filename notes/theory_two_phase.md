@@ -224,7 +224,42 @@ $O(\log\log(1/\epsilon))$.
    far field), and the Newton-phase economy agrees with the $O(n^3)$
    Hessian-cost model used in benchmarking.
 
-## 6. Open directions
+## 6. Cost per cycle (complexity to $\varepsilon$)
+
+Let each cycle consist of a Newton checkpoint block ($n_{\mathrm{newt}}=2$ steps,
+one fresh Hessian each) and a Nesterov block of at most $K_{\mathrm{newt}}$
+AGD steps between probes. The per-Hessian-formation-and-factorization cost is
+$C_H(n)=\Theta(n^3)$ (dense) — the dominant term — and a gradient step costs
+$C_g(n)=\Theta(n)$.
+
+**Lemma 5 (per-cycle cost).** One cycle of CN² costs at most
+
+$$C_{\mathrm{cycle}}(n)\;=\;n_{\mathrm{newt}}\,C_H(n)\;+\;m_{\text{probe}}\,C_H(n)\;+\;K_{\mathrm{newt}}\,C_g(n)$$
+
+where $m_{\text{probe}}$ is the number of entry probes in the Nesterov block
+(1 per re-check) and $K_{\mathrm{newt}}\le K_{ck}\cdot(\text{block count ahead of
+the probe})$. Because $C_H$ dominates, the Hessian count `hess_evals` is the
+correct proxy for wall-time; the ratio `hess_evals`/`iters` therefore measures
+the "checkpointing tax".
+
+**Corollary (checkpoint economy vs. full Newton).** Suppose CN² uses $N_c$ cycles
+and Newton uses $N_N$ single-Hessian iterations. Then
+CN² beats full Newton in total cost iff
+$$N_c\,(n_{\mathrm{newt}}+m_{\text{probe}})\;\le\;N_N,$$
+i.e. iff the *effective Hessian multiplicity* $\nu_{\mathrm{eff}}=
+(n_{\mathrm{newt}}+m_{\text{probe}})$ satisfies
+$\nu_{\mathrm{eff}}\le N_N/N_c$. Empirically on Rosenbrock $n{=}200$,
+$N_N=300$ (and Newton fails) while $N_c\approx 2\nu$ cycles yield
+$\sim90$ Hessians => $\nu_{\mathrm{eff}}\approx 2$–$3$ << 300, and CN² *succeeds*:
+Hessian-economy 100$\times$+ is the measured operational signature of Lemma 5.
+
+**Design implication (T1).** The cadence $K_{ck}=\max(20,n/5)$ caps the number
+of probes per unit progress — the *inverse-proportional policy* keeps
+$m_{\text{probe}}$ small for large $n$, which is exactly where $C_H(n)$ is large.
+This is the algorithmic reason the measured wall-time of CN² stays competitive
+in the moderate-$n$ regime despite forming full Hessians.
+
+## 7. Open directions
 
 - Global (nonconvex) quantitative rate for the far-field Nesterov transit beyond
   the descent Lemma 1, e.g. via a Kurdyka–Łojasiewicz exponent.

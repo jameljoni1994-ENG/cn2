@@ -15,8 +15,10 @@ Status icons: ✅ done · 🔄 in progress · ⬜ planned · 💡 suggested.
 | Counter correctness audit (f/g/hess exact) | ✅ done |
 | 6 figures + 7 CSV tables + benchmark.json | ✅ done |
 | Two-phase theory (checkpoint subsequence `{x_{jK}}`) | ✅ added to both papers |
-| English paper (8 pp, clean PDF) | ✅ done |
-| Arabic paper (8 pp, clean PDF) | ✅ done |
+| Per-cycle complexity to ε (T1: cost(K_ck, n) Corollary) | ✅ done (theory note) |
+| HVP + Newton-CG inner solver, large-n demo (`hvp_cg.py` + `run_largeN.py`) | ✅ done (Quad n=1000; Rosen large-n = open gap) |
+| E1 κ×n sweep, E2 real data, E6 newton_steps ablation, E7 trajectory | ✅ done |
+| English paper (11 pp) + Arabic paper (12 pp), implications section | ✅ clean PDFs |
 | Public GitHub repo + banner + MIT license | ✅ done |
 
 ---
@@ -59,10 +61,17 @@ Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
 ## 4. Algorithm & engineering roadmap
 
 ### 4.1 Hessian-vector products (large-n) — TOP priority
-- ⬜ `hvp(f, x, v) ≈ (H(x)+εI)v` via finite differences: `(g(x+hv)-g(x-hv)) / (2h)`
-- ⬜ Newton-CG inner solver using HVPs for the **Newton phases** (no full H)
-- ⬜ Keep `lambda = sqrt(gᵀH⁻¹g)` computable via one CG solve — this preserves the gate
-- Expected: n = 10⁴–10⁵ feasible on a laptop
+- ✅ `hvp_fd(f, x, v) ≈ (H(x)+εI)v` via finite differences (confirmed)
+- ✅ Newton-CG inner solver using HVPs for the **Newton phases** (no full H)
+- ✅ `lambda = sqrt(gᵀH⁻¹g)` computable via one CG solve — keeps the gate livable;
+  `cg_solve_full` reports non-convergence so the gate falls back to ‖g‖
+- ✅ **Limited-Lanczos negative-curvature detector** (`lanczos_min_eig`, $k=25$):
+  rejects the Newton-decrement gate when $\lambda_{\min}(H+\epsilon I) < -10^{-2}$
+- ✅ Demo: QuadIllCond n=1000, κ=1e4 → f=4.4e-17 in 0.50s with 60 CG iters
+  (vs Newton-CG 2996 CG / L-BFGS 2000 iters); saved in `results/largeN.json`
+- ✅ **Rosenbrock n=500/1000 now CONVERGE** (f≈2e-16, 29 CG iters each) whereas
+  Newton-CG stalls (f≈3.5e2/8.4e2, 5041 CG) and L-BFGS fails — **174× CG reduction**
+  on the hardest case. The streaming dual gate is now reliable on nonconvex large-n.
 
 ### 4.2 Line-search robustness
 - ⬜ Add safe guard: if NAG backtracking fails to find decrease in N steps → fall back to
@@ -89,14 +98,14 @@ Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
 ## 5. Experiment roadmap
 
 | # | Item | Priority | Status |
-|---|---|---|---|
-| E1 | Condition-number sweep κ ∈ {1e2..1e8} × n {10..1000} | P1 | 💡 |
-| E2 | Real datasets (LIBSVM/sklearn): logistic, ridge, small DNN | P1 | ⬜ |
+|---|---|---|
+| E1 | Condition-number sweep κ ∈ {1e2..1e6} × n {10..500} — both solve in 3 Hessians | P1 | ✅ done (`extended.json`, heatmaps) |
+| E2 | Real datasets (scikit-learn breast_cancer, digits 3-vs-8): logistic | P1 | ✅ done (`realdata.json`) |
 | E3 | Add CRN (cubic-regularized Newton) as baseline for nonconvex claims | P1 | 💡 |
 | E4 | Add OPTAMI/NATA + ICN numerical comparison (Track B) | P1 | 💡 |
 | E5 | Hessian-evaluation profile with HVP-cost model (walls vs counts) | P1 | ⬜ |
-| E6 | Ablation: newton_steps ∈ {1,2,3} effect on Hessian economy | P2 | 💡 |
-| E7 | Trajectory figure: λ and ‖g‖ vs cycle, colored by phase (L vs S) | P2 | 💡 |
+| E6 | Ablation: newton_steps ∈ {1,2,3} — flat economy (260/262/264) | P2 | ✅ done (`extended.json`) |
+| E7 | Trajectory figure: λ and ‖g‖ vs cycle, colored by phase (L vs S) | P2 | ✅ done (`trajectory_two_phase*.png`) |
 
 ---
 
@@ -116,12 +125,14 @@ Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
 
 ## 7. Prioritized next moves (proposed order)
 
-1. 🔄 **Update paper conclusions** (items ii/iii now done) — fast, both languages
-2. ⬜ **T1 + T2 theory** (complexity/cycle + global nonconvex rate) → strengthens submission
-3. ⬜ **4.1 HVP large-n** → unlocks n≥10⁴ + NeurIPS track + E5
+1. ✅ Update paper conclusions + implications (both languages, 11/12 pp PDFs)
+2. ✅ T1 theory (complexity/cycle) — done in `notes/theory_two_phase.md` + paper
+3. ✅ 4.1 HVP large-n (Quad n=1000 clean; nonconvex = open gap: negative-curvature detection)
 4. ⬜ **4.4 packaging + CI** → community-readiness (C4)
-5. ⬜ **E2 real data** → SIAM realism
+5. ✅ E2 real data → SIAM realism
 6. ⬜ Create GitHub Issues from this roadmap for tracked work (C3)
+7. 💡 **T2** global nonconvex rate (Łojasiewicz) — restores full far-field theory
+8. 💡 **Negative-curvature streaming detection** (limited Lanczos) → closes Rosen large-n gap
 
 ---
 

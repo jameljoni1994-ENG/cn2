@@ -224,7 +224,7 @@ def newton(f, grad, hess, x0, tau_tol=1e-8, max_iter=200, shift=1e-8,
 # ----------------------------------------------------------------------
 def cn2(f, grad, hess, x0, tau, K0=20, L=None, alpha=None,
         newton_steps=2, max_cycle=200, shift=1e-8, tau_g=None, momentum="nag",
-        verbose=False):
+        verbose=False, trace=None):
     """
     CN² final design (v4).
 
@@ -248,6 +248,12 @@ def cn2(f, grad, hess, x0, tau, K0=20, L=None, alpha=None,
         default and the variant measured in the paper) or "fista" (the
         theoretically-optimal beta_k=(t_{k-1}-1)/t_k schedule, giving the
         NAG rate rho = 1 - sqrt(mu/L) asserted in Lemma 3).
+    trace : optional list; if given, per-far-field-transit entries are appended:
+        {"kind": "recheck", cycle, block, hess, grad, f_eval, steps,
+         metric, val} at every K_ck checkpoint, and a closing
+        {"kind": "cycle", ...} with the full per-cycle counters. Counters
+        are deltas since cycle start (a recheck "hess" of 1 = exactly one
+        Hessian build at that checkpoint).
 
     Exactly matches the agreed spec:
       Q1: Nesterov stops when the Newton decrement itself hits tau.
@@ -275,6 +281,9 @@ def cn2(f, grad, hess, x0, tau, K0=20, L=None, alpha=None,
     K_ck = max(int(K0), int(n / 5))
 
     for cycle in range(max_cycle):
+        if trace is not None:
+            _h0, _g0, _f0 = counter.h, counter.g, counter.f
+        nh = 0
         # ---- 1) Newton: `newton_steps` steps ----
         for _ in range(newton_steps):
             g = grad(x); counter.g += 1
@@ -291,6 +300,7 @@ def cn2(f, grad, hess, x0, tau, K0=20, L=None, alpha=None,
             x = x + t * d
             counter.f += 1
             f_hist.append(float(f(x)))
+            nh += 1
 
         if verbose:
             print(f"[cycle {cycle}] after Newton f={f(x):.3e}")
@@ -311,6 +321,7 @@ def cn2(f, grad, hess, x0, tau, K0=20, L=None, alpha=None,
 
         # ---- 4) far: Nesterov until entry ----
         num_steps = 0
+        block = 0
         t_fista = 1.0
         while True:
             # Nesterov K_ck steps
@@ -346,6 +357,14 @@ def cn2(f, grad, hess, x0, tau, K0=20, L=None, alpha=None,
             val, metric, psd = _lam(x, H)
             thr = _entry_threshold(metric, tau, tau_g)
             f_hist.append(float(f(x))); counter.f += 1
+            if trace is not None:
+                trace.append({
+                    "kind": "recheck", "cycle": cycle, "block": block,
+                    "hess": counter.h - _h0, "grad": counter.g - _g0,
+                    "f_eval": counter.f - _f0, "steps": num_steps,
+                    "metric": metric, "val": float(val),
+                })
+            block += 1
             if verbose:
                 print(f"    nesterov block: {metric}={val:.3e}")
             if val <= thr:
@@ -354,6 +373,18 @@ def cn2(f, grad, hess, x0, tau, K0=20, L=None, alpha=None,
                 break
 
         # ---- 5) loop back to Newton ----
+        if trace is not None:
+            trace.append({
+                "kind": "cycle", "cycle": cycle,
+                "hess": counter.h - _h0,
+                "grad": counter.g - _g0,
+                "f": counter.f - _f0,
+                "steps": num_steps,
+                "newton": nh,
+                "blocks": block,
+                "metric": metric,
+                "val": float(val),
+            })
 
     return x, {
         "f_hist": f_hist,

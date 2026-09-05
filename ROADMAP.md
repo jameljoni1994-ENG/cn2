@@ -46,7 +46,7 @@ Status icons: ✅ done · 🔄 in progress · ⬜ planned · 💡 suggested.
 
 | # | Item | Priority | Status |
 |---|---|---|---|
-| T1 | Nexus of checkpoint rate + Hessian cost (complexity per cycle) | P0 | ⬜ |
+| T1 | Nexus of checkpoint rate + Hessian cost (complexity per cycle) | P0 | 🟡 empirical dataset (`quick_suite.json` T1): 1 Hessian+1 grad per checkpoint, 3 static/c; theory pending |
 | T2 | Global (nonconvex) far-field rate via Łojasiewicz/KL exponent | P1 | 💡 |
 | T3 | Bound `p_j` in terms of local conditioning κ_j along the block | P1 | 💡 |
 | T4 | Blockwise (K-strided) subsequence extension of two-phase Thm | P1 | 💡 |
@@ -85,6 +85,8 @@ Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
   with deep-learning autodiff; benchmark small MLP/MNIST
 
 ### 4.4 Package engineering
+- ✅ Budgeted one-shot suite: `experiments/run_quick_suite.py [--budget s]` with
+  cumulative wall-clock guard and automatic trimming (measures ~6 min on a 16 GB laptop)
 - ⬜ `pyproject.toml` + `pip install -e .` (package `cn2`)
 - ⬜ CI: GitHub Actions (lint + pytest + a smoke benchmark on ubuntu/mac/win)
 - ⬜ Re-enable tests: port `test_rosenbrock.py`, `compare_probe.py` to the current `(x, info)` API
@@ -92,8 +94,9 @@ Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
 - 💡 Optional `scipy` extras for first-order comparisons (not needed for core)
 
 ### 4.5 Reproducibility hardening
-- ⬜ Pinned random seeds per problem (Logistic already `seed=0`; make explicit across suite)
-- ⬜ Record machine/NumPy version in `benchmark.json` metadata
+- ✅ Multi-seed reproducibility (5 seeds × 4 problems × 3 methods) + machine/NumPy
+  metadata recorded in `results/quick_suite.json` (CPU, cores, platform, versions)
+- 🟡 Pinned seeds across the whole suite (Logistic already seed=0; extend to `run_all`/`run_largeN`)
 - ⬜ Add `--quick` smoke mode for CI
 
 ---
@@ -104,9 +107,9 @@ Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
 |---|---|---|
 | E1 | Condition-number sweep κ ∈ {1e2..1e6} × n {10..500} — both solve in 3 Hessians | P1 | ✅ done (`extended.json`, heatmaps) |
 | E2 | Real datasets (scikit-learn breast_cancer, digits 3-vs-8): logistic | P1 | ✅ done (`realdata.json`) |
-| E3 | Add CRN (cubic-regularized Newton) as baseline for nonconvex claims | P1 | 💡 |
+| E3 | Add CRN (cubic-regularized Newton) as baseline for nonconvex claims | P1 | ✅ CRN stalls on Beale/Rosen50 (f≈13–20) where CN²→0 (`quick_suite.json`) |
 | E4 | Add OPTAMI/NATA + ICN numerical comparison (Track B) | P1 | 💡 |
-| E5 | Hessian-evaluation profile with HVP-cost model (walls vs counts) | P1 | 🟡 partial (`hv_evals`/`hv_gate`/`hv_total` in `largeN.json`; wall time recorded) |
+| E5 | Hessian-evaluation profile with HVP-cost model (walls vs counts) | P1 | ✅ multi-seed (5 seeds) + L/tau_g sweeps in `quick_suite.json`; hv_total in `largeN.json` |
 | E6 | Ablation: newton_steps ∈ {1,2,3} — flat economy (181/261/263) | P2 | ✅ done (`extended.json`) |
 | E7 | Trajectory figure: λ and ‖g‖ vs cycle, colored by phase (L vs S) | P2 | ✅ done (`trajectory_two_phase*.png`) |
 

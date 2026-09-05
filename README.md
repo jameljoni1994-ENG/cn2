@@ -63,6 +63,10 @@ figures/                     figures (also copied to paper/figures)
 python experiments/run_all.py     # validates + full comparison + sensitivity + plots
 python experiments/export_tables.py  # writes results/table_*.csv
 py -m pytest tests/ -q            # unit + dual-gate regression checks
+
+# one-shot ≤1h suite (measures ~6 min on a 16GB laptop): reproduces the current
+# scripts + T1 cost-per-checkpoint sweep + multi-seed + L/tau_g + CRN baseline
+python experiments/run_quick_suite.py   # writes results/quick_suite.json
 ```
 
 Requires only **NumPy** and **matplotlib** (Python ≥ 3.10). LaTeX (MiKTeX

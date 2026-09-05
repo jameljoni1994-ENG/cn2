@@ -2855,7 +2855,7 @@
       "walltime": 3123.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=2",
-      "cpu_s": 0.177
+      "cpu_s": 0.174
     },
     {
       "f_hist": [
@@ -2891,7 +2891,7 @@
       "walltime": 66.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=2",
-      "cpu_s": 0.004
+      "cpu_s": 0.001
     },
     {
       "f_hist": [
@@ -3620,7 +3620,7 @@
       "walltime": 674.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=2",
-      "cpu_s": 0.045
+      "cpu_s": 0.044
     },
     {
       "f_hist": [
@@ -6263,7 +6263,7 @@
       "walltime": 5256.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=2",
-      "cpu_s": 0.169
+      "cpu_s": 0.165
     },
     {
       "f_hist": [
@@ -11279,7 +11279,7 @@
       "walltime": 5001.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=2",
-      "cpu_s": 0.248
+      "cpu_s": 0.242
     },
     {
       "f_hist": [
@@ -11740,7 +11740,7 @@
       "walltime": 498.0,
       "hv_evals": 0,
       "problem": "Beale n=2",
-      "cpu_s": 0.012
+      "cpu_s": 0.011
     },
     {
       "f_hist": [],
@@ -11779,7 +11779,7 @@
       "method": "newton_cg",
       "walltime": 11.0,
       "problem": "Beale n=2",
-      "cpu_s": 0.001
+      "cpu_s": 0.002
     },
     {
       "f_hist": [
@@ -12191,7 +12191,7 @@
       "walltime": 736.0,
       "hv_evals": 0,
       "problem": "Beale n=2",
-      "cpu_s": 0.013
+      "cpu_s": 0.017
     },
     {
       "f_hist": [
@@ -14888,7 +14888,7 @@
       "walltime": 2683.0,
       "hv_evals": 0,
       "problem": "Beale n=2",
-      "cpu_s": 0.064
+      "cpu_s": 0.061
     },
     {
       "f_hist": [
@@ -19566,7 +19566,7 @@
       "walltime": 15287.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=50",
-      "cpu_s": 0.694
+      "cpu_s": 0.752
     },
     {
       "f_hist": [
@@ -19670,7 +19670,7 @@
       "walltime": 4590.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=50",
-      "cpu_s": 0.029
+      "cpu_s": 0.027
     },
     {
       "f_hist": [
@@ -19777,7 +19777,7 @@
       "method": "newton_cg",
       "walltime": 93.0,
       "problem": "Rosenbrock n=50",
-      "cpu_s": 2.321
+      "cpu_s": 2.387
     },
     {
       "f_hist": [
@@ -20060,7 +20060,7 @@
       "walltime": 268.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=50",
-      "cpu_s": 0.058
+      "cpu_s": 0.057
     },
     {
       "f_hist": [
@@ -25075,7 +25075,7 @@
       "walltime": 10000.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=50",
-      "cpu_s": 1.158
+      "cpu_s": 1.156
     },
     {
       "f_hist": [
@@ -30091,7 +30091,7 @@
       "walltime": 5001.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=50",
-      "cpu_s": 0.681
+      "cpu_s": 0.661
     },
     {
       "f_hist": [
@@ -35468,7 +35468,7 @@
       "walltime": 31461.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=100",
-      "cpu_s": 1.392
+      "cpu_s": 1.347
     },
     {
       "f_hist": [
@@ -35645,7 +35645,7 @@
       "walltime": 16463.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=100",
-      "cpu_s": 0.098
+      "cpu_s": 0.107
     },
     {
       "f_hist": [
@@ -35825,7 +35825,7 @@
       "method": "newton_cg",
       "walltime": 166.0,
       "problem": "Rosenbrock n=100",
-      "cpu_s": 8.842
+      "cpu_s": 8.959
     },
     {
       "f_hist": [
@@ -36005,7 +36005,7 @@
       "walltime": 165.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=100",
-      "cpu_s": 0.047
+      "cpu_s": 0.045
     },
     {
       "f_hist": [
@@ -41020,7 +41020,7 @@
       "walltime": 10000.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=100",
-      "cpu_s": 1.987
+      "cpu_s": 1.95
     },
     {
       "f_hist": [
@@ -46036,7 +46036,7 @@
       "walltime": 5001.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=100",
-      "cpu_s": 1.06
+      "cpu_s": 1.076
     },
     {
       "f_hist": [
@@ -53110,7 +53110,7 @@
       "walltime": 42658.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=200",
-      "cpu_s": 3.238
+      "cpu_s": 3.111
     },
     {
       "f_hist": [
@@ -53425,7 +53425,7 @@
       "walltime": 60300.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=200",
-      "cpu_s": 0.486
+      "cpu_s": 0.458
     },
     {
       "f_hist": [
@@ -53741,7 +53741,7 @@
       "method": "newton_cg",
       "walltime": 301.0,
       "problem": "Rosenbrock n=200",
-      "cpu_s": 37.427
+      "cpu_s": 36.655
     },
     {
       "f_hist": [
@@ -54757,7 +54757,7 @@
       "walltime": 1001.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=200",
-      "cpu_s": 0.663
+      "cpu_s": 0.63
     },
     {
       "f_hist": [
@@ -59772,7 +59772,7 @@
       "walltime": 10000.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=200",
-      "cpu_s": 3.572
+      "cpu_s": 3.535
     },
     {
       "f_hist": [
@@ -64788,7 +64788,7 @@
       "walltime": 5001.0,
       "hv_evals": 0,
       "problem": "Rosenbrock n=200",
-      "cpu_s": 1.808
+      "cpu_s": 1.826
     },
     {
       "f_hist": [
@@ -65188,7 +65188,7 @@
       "walltime": 1128.0,
       "hv_evals": 0,
       "problem": "Logistic (p=30)",
-      "cpu_s": 1.065
+      "cpu_s": 1.009
     },
     {
       "f_hist": [
@@ -65211,7 +65211,7 @@
       "walltime": 288.0,
       "hv_evals": 0,
       "problem": "Logistic (p=30)",
-      "cpu_s": 0.375
+      "cpu_s": 0.36
     },
     {
       "f_hist": [
@@ -65414,7 +65414,7 @@
       "method": "newton_cg",
       "walltime": 189.0,
       "problem": "Logistic (p=30)",
-      "cpu_s": 10.172
+      "cpu_s": 9.388
     },
     {
       "f_hist": [
@@ -65467,7 +65467,7 @@
       "walltime": 38.0,
       "hv_evals": 0,
       "problem": "Logistic (p=30)",
-      "cpu_s": 0.008
+      "cpu_s": 0.006
     },
     {
       "f_hist": [
@@ -65794,7 +65794,7 @@
       "walltime": 624.0,
       "hv_evals": 0,
       "problem": "Logistic (p=30)",
-      "cpu_s": 0.04
+      "cpu_s": 0.045
     },
     {
       "f_hist": [
@@ -70667,7 +70667,7 @@
       "walltime": 4859.0,
       "hv_evals": 0,
       "problem": "Logistic (p=30)",
-      "cpu_s": 0.454
+      "cpu_s": 0.447
     }
   ],
   "sensitivity_K0": [

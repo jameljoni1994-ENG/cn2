@@ -51,7 +51,7 @@ Status icons: ✅ done · 🔄 in progress · ⬜ planned · 💡 suggested.
 | T3 | Bound `p_j` in terms of local conditioning κ_j along the block | P1 | 💡 |
 | T4 | Blockwise (K-strided) subsequence extension of two-phase Thm | P1 | 💡 |
 | T5 | Adaptive-τ adaptive-gate convergence (make τ a function of ‖g‖) | P2 | 💡 |
-| T6 | Sharp constants: C ~ M/(2μ), ρ = 1-√(μ/L) verified numerically | P2 | 💡 |
+| T6 | Sharp constants: C ~ M/(2μ), ρ = 1-√(μ/L) verified numerically | P2 | 🟡 ρ realized by `momentum="fista"`; constant-C check pending |
 
 **Suggested flagships:** T2 would make the far-field result *global*, separating CN² from
 Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
@@ -67,11 +67,14 @@ Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
   `cg_solve_full` reports non-convergence so the gate falls back to ‖g‖
 - ✅ **Limited-Lanczos negative-curvature detector** (`lanczos_min_eig`, $k=25$):
   rejects the Newton-decrement gate when $\lambda_{\min}(H+\epsilon I) < -10^{-2}$
-- ✅ Demo: QuadIllCond n=1000, κ=1e4 → f=4.4e-17 in 0.50s with 60 CG iters
+- ✅ Demo: QuadIllCond n=1000, κ=1e4 → f=4.4e-17, 60 Newton-direction CG iters
+  but **hv_total = 4595** (60 + 4535 gate probes) — honest gate cost
   (vs Newton-CG 2996 CG / L-BFGS 2000 iters); saved in `results/largeN.json`
-- ✅ **Rosenbrock n=500/1000 now CONVERGE** (f≈2e-16, 29 CG iters each) whereas
+- ✅ **Rosenbrock n=500/1000 now CONVERGE to machine precision** (f≈4.7e-16/1.6e-16,
+  27/29 Newton-direction CG iters; hv_gate 4544/4353, hv_total 4571/4382) whereas
   Newton-CG stalls (f≈3.5e2/8.4e2, 5041 CG) and L-BFGS fails — **174× CG reduction**
-  on the hardest case. The streaming dual gate is now reliable on nonconvex large-n.
+  on the hardest case, still below Newton-CG in honest total HVPs (4382 vs 5041).
+  The streaming dual gate is now reliable on nonconvex large-n.
 
 ### 4.2 Line-search robustness
 - ⬜ Add safe guard: if NAG backtracking fails to find decrease in N steps → fall back to
@@ -103,8 +106,8 @@ Cubic-Newton theory; T1 is the standard "cost per ε" reviewers will demand.
 | E2 | Real datasets (scikit-learn breast_cancer, digits 3-vs-8): logistic | P1 | ✅ done (`realdata.json`) |
 | E3 | Add CRN (cubic-regularized Newton) as baseline for nonconvex claims | P1 | 💡 |
 | E4 | Add OPTAMI/NATA + ICN numerical comparison (Track B) | P1 | 💡 |
-| E5 | Hessian-evaluation profile with HVP-cost model (walls vs counts) | P1 | ⬜ |
-| E6 | Ablation: newton_steps ∈ {1,2,3} — flat economy (260/262/264) | P2 | ✅ done (`extended.json`) |
+| E5 | Hessian-evaluation profile with HVP-cost model (walls vs counts) | P1 | 🟡 partial (`hv_evals`/`hv_gate`/`hv_total` in `largeN.json`; wall time recorded) |
+| E6 | Ablation: newton_steps ∈ {1,2,3} — flat economy (181/261/263) | P2 | ✅ done (`extended.json`) |
 | E7 | Trajectory figure: λ and ‖g‖ vs cycle, colored by phase (L vs S) | P2 | ✅ done (`trajectory_two_phase*.png`) |
 
 ---

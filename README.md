@@ -35,9 +35,9 @@ In convex/strictly-convex regions λ governs switching.
 
 | Problem | CN² Hessians | Newton Hessians | f_CN² | f_Newton |
 |---|---|---|---|---|
-| Rosenbrock n=100 | 262 | 163 | **0.0** | 2.1e-22 |
-| Rosenbrock n=200 | ~179 | 300 (fails) | **0.0** | **0.51 ✗** |
-| Beale (2D) | 21 | — | **1.6e-22** | 14.0 ✗ |
+| Rosenbrock n=100 | 261 | 163 | **0.0** | 2.1e-22 |
+| Rosenbrock n=200 | 178 | 300 (fails) | **0.0** | **0.51 ✗** |
+| Beale (2D) | 26 | — | **1.6e-22** | 14.0 ✗ |
 
 Two-phase contraction of λ: a slow linear regime (Nesterov, exponent p≈1)
 followed by a superlinear regime (Newton, p>1) — the engine of the method.
@@ -62,7 +62,7 @@ figures/                     figures (also copied to paper/figures)
 ```bash
 python experiments/run_all.py     # validates + full comparison + sensitivity + plots
 python experiments/export_tables.py  # writes results/table_*.csv
-python tests/run_cn2_dualgate.py     # smoke test across problems
+py -m pytest tests/ -q            # unit + dual-gate regression checks
 ```
 
 Requires only **NumPy** and **matplotlib** (Python ≥ 3.10). LaTeX (MiKTeX

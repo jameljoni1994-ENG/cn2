@@ -20,13 +20,13 @@ from src.core import Counter
 from problems.test_funcs import Rosenbrock, Beale
 
 
-def trace(f, grad, hess, x0, tau, K0=10, L=None, alpha=None, newton_steps=2,
+def trace(f, grad, hess, x0, tau, K0=20, L=None, alpha=None, newton_steps=2,
           max_cycle=200, shift=1e-8, tau_g=None):
     """Replay of the CN2 loop recording (denominator, metric, value, psd)."""
     x = np.asarray(x0, dtype=float).copy()
     x_prev = x.copy()
     n = x.size
-    K_ck = max(20, int(n / 5))
+    K_ck = max(int(K0), int(n / 5))
     rec = []
 
     def _hess(xx):

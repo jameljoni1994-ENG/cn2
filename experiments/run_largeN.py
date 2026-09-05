@@ -7,8 +7,9 @@ Methods compared (all Hessian-free):
   - Newton-CG (baseline): CG-Newton on HVP.
   - L-BFGS (baseline): manual two-loop recursion, gradient-only.
 
-Reports final f, iterations, and a proxy for Hessian cost: CG inner iterations
-(hv_evals) + Hessian formations (0 for all).
+Reports final f, iterations, and Hessian cost proxies: hv_evals (CG inner
+iterations for Newton directions), hv_gate (gate HVPs: SPD probes + Lanczos +
+lambda-gate CG), and hv_total = hv_evals + hv_gate. Hessian formations = 0.
 """
 from __future__ import annotations
 
@@ -76,13 +77,13 @@ def lbfgs_hvp(grad, f, x0, max_iter=2000, tol=1e-8, m=10):
     return x, len(hist)
 
 
-def cn2_hvp(f, grad, x0, tau, K0=10, L=None, newton_steps=2, max_cycle=40,
-            eps=1e-8, tau_g=None, cg_max=30, verbose=False):
+def cn2_hvp(f, grad, x0, tau, K0=20, L=None, newton_steps=2, max_cycle=40,
+            eps=1e-8, tau_g=None, cg_max=30, momentum="nag", verbose=False):
     x = np.asarray(x0, dtype=float).copy()
     x_prev = x.copy()
-    cnt_f = cnt_g = hv = 0
+    cnt_f = cnt_g = hv = hv_gate = 0
     n = x.size
-    K_ck = max(20, int(n / 5))
+    K_ck = max(int(K0), int(n / 5))
 
     def cg_dir(xx, g):
         nonlocal hv
@@ -92,22 +93,27 @@ def cn2_hvp(f, grad, x0, tau, K0=10, L=None, newton_steps=2, max_cycle=40,
         return d
 
     def entry(xx):
-        nonlocal hv
+        nonlocal hv_gate
         g = grad(xx); cntg = 1
         A = HvpOperator(grad, xx, eps=eps)
-        # SPD probe over several directions (weak single-Rayleigh is unreliable)
+        # SPD probe over several directions; every probe is one HVP
         rng = np.random.default_rng(0)
         v0 = g / max(np.linalg.norm(g), 1e-12)
         probes = [v0] + [rng.standard_normal(n) for _ in range(5)]
-        curv = [np.dot(u / max(np.linalg.norm(u), 1e-12), A(u)) for u in probes]
+        curv = []
+        for u in probes:
+            u = u / max(np.linalg.norm(u), 1e-12)
+            curv.append(float(np.dot(u, A(u))))
+            hv_gate += 1
         curv_scale = max(max(abs(c) for c in curv), 1e-12)
         if all(c > 1e-6 * curv_scale for c in curv):
-            # Limited Lanczos for negative-curvature detection
-            lambda_min, converged, _, _ = lanczos_min_eig(A, n, k=25, tol=1e-8)
-            # Use a SMALL absolute tolerance for negative curvature (not scaled by max curv)
+            # Limited Lanczos for negative-curvature detection (k HVPs)
+            lambda_min, converged, Td, _ = lanczos_min_eig(A, n, k=25, tol=1e-8)
+            hv_gate += len(Td)
             eta = 1e-2  # reject if min eigenvalue < -0.01
             if lambda_min > -eta:
-                lam, conv = newton_decrement_cg(g, A, tol=1e-6)
+                lam, conv, it = newton_decrement_cg(g, A, tol=1e-6)
+                hv_gate += it
                 if conv:
                     return lam, "lambda", cntg
         return float(np.linalg.norm(g)), "gradnorm", cntg
@@ -136,10 +142,16 @@ def cn2_hvp(f, grad, x0, tau, K0=10, L=None, newton_steps=2, max_cycle=40,
             break
 
         num_steps = 0
+        t_fista = 1.0
         while True:
-            beta = 0.9 if num_steps > 0 else 0.0
             for _ in range(K_ck):
-                y = x + beta * (x - x_prev)
+                if momentum == "fista":
+                    t_next = (1.0 + np.sqrt(1.0 + 4.0 * t_fista ** 2)) / 2.0
+                    beta_k = (t_fista - 1.0) / t_next
+                    t_fista = t_next
+                else:
+                    beta_k = 0.9 if num_steps > 0 else 0.0
+                y = x + beta_k * (x - x_prev)
                 gy = grad(y); cnt_g += 1
                 if L is None:
                     a = 1.0
@@ -169,7 +181,9 @@ def cn2_hvp(f, grad, x0, tau, K0=10, L=None, newton_steps=2, max_cycle=40,
                 break
 
     return x, {"iters": num_steps + cycle * (newton_steps + 1),
-               "hess_evals": 0, "hv_evals": hv, "cnt_f": cnt_f, "cnt_g": cnt_g}
+               "hess_evals": 0, "hv_evals": hv, "hv_gate": hv_gate,
+               "hv_total": hv + hv_gate, "k_ck": K_ck,
+               "cnt_f": cnt_f, "cnt_g": cnt_g}
 
 
 def main():
@@ -193,9 +207,11 @@ def main():
         dt = time.perf_counter() - t0
         ff = prob.f(x)
         sprint(f"  CN2-HVP : f={ff:.3e}  grad={info['cnt_g']:>8}  "
-               f"cg={info['hv_evals']:>8}  wall={dt:6.2f}s")
+               f"cg={info['hv_evals']:>8}  gate={info['hv_gate']:>8}  "
+               f"hv_total={info['hv_total']:>8}  wall={dt:6.2f}s")
         row["cn2_f"] = ff; row["cn2_grad"] = info["cnt_g"]
-        row["cn2_hv"] = info["hv_evals"]; row["cn2_wall"] = dt
+        row["cn2_hv"] = info["hv_evals"]; row["cn2_hv_gate"] = info["hv_gate"]
+        row["cn2_hv_total"] = info["hv_total"]; row["cn2_wall"] = dt
 
         t0 = time.perf_counter()
         x, hv = newton_cg_hvp(prob.grad, x0, tau_tol=tau, cg_max=30)

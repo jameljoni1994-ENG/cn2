@@ -107,15 +107,16 @@ def run_comparison(problems, methods):
 # (C): sensitivity over K0 and tau
 # ----------------------------------------------------------------------
 def run_sensitivity():
-    print("\n--- Sensitivity: K0 on Rosenbrock n=100 ---")
+    print("\n--- Sensitivity: K0 on Rosenbrock n=100 (K_ck = max(K0, n/5)) ---")
     p, x0, tau, L = Rosenbrock(100), -1.2*np.ones(100), 1e-8, 200.0
     sens_k = []
-    for K0 in [5, 10, 20, 40]:
+    for K0 in [5, 20, 50, 100]:
         info = run_method(p, x0, tau, L, "cn2", K0=K0)
-        sens_k.append({"K0": K0, "f": info["final_f"],
+        sens_k.append({"K0": K0, "k_ck": info["k_ck"], "f": info["final_f"],
                        "hess": info["hess_evals"], "iters": info["iters"],
                        "wall": info["walltime"]})
-        print(f"  K0={K0:>3}: f={info['final_f']:.2e} hess={info['hess_evals']} "
+        print(f"  K0={K0:>3} (K_ck=max(K0,n/5)={info['k_ck']:>3}): "
+              f"f={info['final_f']:.2e} hess={info['hess_evals']} "
               f"iters={info['iters']}", flush=True)
 
     print("--- Sensitivity: tau on Rosenbrock n=100 ---")

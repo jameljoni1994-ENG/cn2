@@ -71,12 +71,13 @@ def cg_solve(A, b, x0=None, tol=1e-6, max_iter=None):
 def newton_decrement_cg(g, Aop, tol=1e-6):
     """lambda = sqrt(g^T (H+eps I)^{-1} g) using one CG solve.
 
-    Returns (value, converged): converged=False means CG hit max_iter without
-    reaching the residual tolerance, so the value is NOT trustworthy
-    (occurs when A is indefinite / negative curvature)."""
+    Returns (value, converged, iters): converged=False means CG hit max_iter
+    without reaching the residual tolerance, so the value is NOT trustworthy
+    (occurs when A is indefinite / negative curvature). iters is the number
+    of HVP iterations the gate's extra CG solve consumed."""
     z, iters, converged = cg_solve_full(Aop, g, tol=tol)
     val = float(np.sqrt(max(np.dot(g, z), 0.0)))
-    return val, converged
+    return val, converged, iters
 
 
 def cg_solve_full(A, b, tol=1e-6, max_iter=None):
@@ -105,24 +106,6 @@ def cg_solve_full(A, b, tol=1e-6, max_iter=None):
         p = r + (rs_new / rs) * p
         rs = rs_new
     return x, max_iter, False
-
-
-def hessian_psd_cg(Aop, v=None, tol=1e-8):
-    """SPD check without forming H: test curvature on a few directions."""
-    n = v.size if v is not None else None
-    # cheap proxy: Rayleigh quotient must be positive on 2 probes
-    if n is None:
-        return True
-    rng = np.random.default_rng(0)
-    probes = [v / max(np.linalg.norm(v), 1e-12)] if v.any() else []
-    probes += [rng.standard_normal(n) for _ in range(3)]
-    pos = 0
-    for u in probes:
-        u = u / max(np.linalg.norm(u), 1e-12)
-        rq = np.dot(u, Aop(u))
-        if rq > tol * max(1.0, np.dot(u, Aop(u))):  # normalized curvature
-            pos += 1
-    return pos >= len(probes) - 1  # tolerate 1 noisy probe
 
 
 def lanczos_min_eig(Aop, n, k=25, tol=1e-6, seed=0):

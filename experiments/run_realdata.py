@@ -46,7 +46,7 @@ def run_case(name, reg):
     x0 = np.zeros(d)
     info_all = {}
 
-    x, info = cn2(p.f, p.grad, p.hess, x0, tau=1e-8, K0=10, L=None,
+    x, info = cn2(p.f, p.grad, p.hess, x0, tau=1e-8, K0=20, L=None,
                   tau_g=1e-4, newton_steps=2, max_cycle=300)
     info_all["CN2"] = (p.f(x), info["hess_evals"], info["iters"])
 

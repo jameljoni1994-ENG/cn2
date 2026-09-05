@@ -31,7 +31,7 @@ def run_e1():
         for kappa in (1e2, 1e4, 1e6):
             p = QuadIllCond(n, kappa)
             x0 = 5.0 * np.ones(n)
-            x, info = cn2(p.f, p.grad, p.hess, x0, tau=1e-8, K0=10, L=1.0,
+            x, info = cn2(p.f, p.grad, p.hess, x0, tau=1e-8, K0=20, L=1.0,
                           tau_g=1e-4, newton_steps=2, max_cycle=200)
             xN, infoN = newton(p.f, p.grad, p.hess, x0, tau_tol=1e-8, max_iter=200)
             row = {"f": p.f(x), "hess": info["hess_evals"],
@@ -57,7 +57,7 @@ def run_e6():
         print(f"-- {name}")
         out[name] = {}
         for ns in (1, 2, 3):
-            x, info = cn2(p.f, p.grad, p.hess, x0, tau=tau, K0=10, L=L,
+            x, info = cn2(p.f, p.grad, p.hess, x0, tau=tau, K0=20, L=L,
                           tau_g=1e-4, newton_steps=ns, max_cycle=300)
             row = {"f": p.f(x), "hess": info["hess_evals"], "it": info["iters"]}
             out[name][ns] = row

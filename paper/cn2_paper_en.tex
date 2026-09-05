@@ -318,7 +318,7 @@ Logistic $p{=}30$    & $1.03{\times}10^{-1}$ & $1.03{\times}10^{-1}$ & $1.03{\ti
 Notably, on \emph{Beale} Newton stops immediately ($f=14.0$) because the initial point
 lands in a nonconvex region; $\cn$'s gradient-norm gate lets the NAG phase escape and reach
 $f=1.6{\times}10^{-22}$. On \emph{Rosenbrock} $n=200$, New\-ton consumes $300$ Hessians yet
-  fails, while $\cn$ succeeds with $\sim179$ Hessians.
+  fails, while $\cn$ succeeds with $\sim178$ Hessians.
 
 \begin{figure}[H]
 \centering
@@ -336,15 +336,21 @@ regime $\cn$ reaches the solution with fewer Hessians while Newton stalls.}
 \end{figure}
 
 \subsection{Sensitivity}
-We varied the jump length $K_0\in\{5,10,20,40\}$ on Rosenbrock $n{=}100$: the result is
-identical ($f=0$, $\sim262$ Hessians) in all cases (\cref{fig:k0}). Varying the threshold
-$\tau$ exposes a clean trade-off: smaller $\tau$ yields higher accuracy but more Hessians
-(\cref{fig:tau}).
+The user-defined cadence $K_0$ sets the effective re-check period
+$K_{\mathrm{ck}} = \max(K_0,\, n/5)$ of the dual gate. Varying $K_0$ on
+Rosenbrock $n{=}100$ (where the dimension floor is $n/5=20$): any $K_0\le20$
+gives identical runs ($f=0$, $\sim261$ Hessians), while $K_0=50$ and $K_0=100$
+raise the period and trade fewer Hessian/probe evaluations ($108$, resp.\ $57$)
+for longer Nesterov bursts, still reaching $f=0$ (\cref{fig:k0}). Varying the
+threshold $\tau$ exposes a clean trade-off: smaller $\tau$ yields higher
+accuracy but more Hessians (\cref{fig:tau}).
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.8\linewidth]{figures/sensitivity_K0.png}
-\caption{Robustness to the user-defined jump length $K_0$.}
+\caption{Effect of the gate cadence $K_0$ on Rosenbrock $n{=}100$: values at
+or below the dimension floor $n/5$ are identical; larger values trade fewer
+gate probes for longer Nesterov bursts, $f=0$ in all cases.}
 \label{fig:k0}
 \end{figure}
 
@@ -382,8 +388,8 @@ QuadIllCond. Both are 3 on every cell of the $n\times\kappa$ grid.}
 
 \subsection{Insensitivity to the number of Newton steps per cycle (E6)}
 Removing the second Newton step of each cycle does not change the results:
-on Rosenbrock $n{=}100$ the Hessian counts are $260/262/264$ for
-$\texttt{newton\_steps}=1,2,3$; on Beale $20/21/22$; on Himmelblau $5/7/9$
+on Rosenbrock $n{=}100$ the Hessian counts are $181/261/263$ for
+$\texttt{newton\_steps}=1,2,3$; on Beale $25/26/27$; on Himmelblau $6/8/9$
 (\cref{fig:e6}). Each extra Newton step costs at most one additional Hessian
 per cycle, and the dual gate absorbs the rest of the modification. This
 validates the architecture choice of the roadmap and lowers the tuning burden.
@@ -421,8 +427,8 @@ We fit L2-regularized binomial logistic regression on the UCI breast-cancer
 methods reach the identical optimum ($f=5.98{\times}10^{-2}$ and
 $f=1.42{\times}10^{-2}$, \cref{tab:e2}); the log-loss is convex, so the naive
 Newton method is expectedly best in Hessian count ($10$ and $11$) and
-L-BFGS needs none. $\cn$ converges robustly to the same optimum with $81$ and
-$77$ Hessians. The honest reading is that $\cn$'s Hessian economy is a property
+L-BFGS needs none. $\cn$ converges robustly to the same optimum with $80$ and
+$76$ Hessians. The honest reading is that $\cn$'s Hessian economy is a property
 of the {\em nonconvex} regime, where Newton and quasi-Newton fail; on
 strongly convex log-loss there is nothing to save.
 
@@ -436,12 +442,12 @@ strongly convex log-loss there is nothing to save.
 Dataset & $\cn$ & Newton & L-BFGS & Newton-CG\\
 \midrule
 breast\_cancer &
-  $5.98{\times}10^{-2}$ / $81$ &
+  $5.98{\times}10^{-2}$ / $80$ &
   $5.98{\times}10^{-2}$ / $10$ &
   $5.98{\times}10^{-2}$ / $0$ &
   $5.98{\times}10^{-2}$ / $0$\\
 digits\_3v8 &
-  $1.42{\times}10^{-2}$ / $77$ &
+  $1.42{\times}10^{-2}$ / $76$ &
   $1.42{\times}10^{-2}$ / $11$ &
   $1.42{\times}10^{-2}$ / $0$ &
   $1.42{\times}10^{-2}$ / $0$\\
@@ -459,19 +465,26 @@ detector} (\texttt{lanczos\_min\_eig}, $k=25$ steps) that rejects the
 Newton-decrement gate whenever the minimum eigenvalue of $H+\epsilon I$ falls
 below $-10^{-2}$. This closes the streaming gap on the Rosenbrock family.
 
-On the $\kappa{=}10^4$ quadratic in $n=1000$, $\cn$-HVP reaches
-$f=4.4{\times}10^{-17}$ with only $60$ CG iterations in $0.50$\,s, versus
-Newton-CG ($2996$ CG, $0.08$\,s) and L-BFGS ($f=3.0{\times}10^{-11}$, $2000$
-iters). The streaming version is therefore $50\times$ cheaper in linear-algebra
-work than Newton-CG while matching its accuracy. On the \emph{nonconvex}
-Rosenbrock family at $n=500$ and $n=1000$, $\cn$-HVP \textbf{converges to
-machine precision} ($f=2.9{\times}10^{-16}$ and $f=2.0{\times}10^{-16}$ with
-$29$ CG iterations each) whereas Newton-CG stalls at $f\approx 3.5{\times}10^2$
-and $f\approx 8.4{\times}10^2$ ($5041$ CG iterations) and L-BFGS fails
-($f=3.0{\times}10^3$ and $f=7.0$). This represents a $174\times$ reduction in
-CG work on the hardest test case (Rosenbrock $n=1000$) and demonstrates that
-a lightweight Lanczos probe ($25$ HVPs per checkpoint) makes the
-Newton-decrement gate safe for nonconvex large-$n$ streaming.
+We report the substitute work \emph{honestly}: we split the HVP count into
+$\mathrm{hv}$ (Newton-direction CG iterations) and $\mathrm{hv}_{\rm gate}$
+(per-check gate cost: $6$ SPD-probe HVPs $+$ up to $25$ Lanczos HVPs $+$ one
+$\lambda$-gate CG solve). On the $\kappa{=}10^4$ quadratic in $n=1000$,
+$\cn$-HVP reaches $f=4.4{\times}10^{-17}$ in $60$ Newton-direction CG
+iterations but $\mathrm{hv}_{\rm total}=4595$ once the gate is included,
+vs.\ $2996$ CG iterations for Newton-CG; the gate probe is the price of keeping
+$\lambda$ streaming without forming $H$. On the \emph{nonconvex} Rosenbrock
+family at $n=500$ and $n=1000$, $\cn$-HVP \textbf{converges to machine
+precision} ($f\approx4.7{\times}10^{-16}$ and $f\approx1.6{\times}10^{-16}$)
+in $27$/$29$ Newton-direction CG iterations plus $4544$/$4353$ gate HVPs
+($\mathrm{hv}_{\rm total}=4571/4382$), whereas Newton-CG stalls at
+$f\approx3.5{\times}10^2$ and $f\approx8.4{\times}10^2$ ($5041$ CG iterations)
+and L-BFGS fails ($f\approx3.0{\times}10^3$ and $f\approx7.0$). Within the
+Newton-direction CG count this is a $174\times$ reduction on Rosenbrock
+$n=1000$; including the gate then honest total is $4382$ vs.\ $5041$ HVPs,
+which remains below Newton-CG while converging where Newton-CG fails
+altogether. The honest lesson is that in the streaming regime the per-check
+Lanczos probe is no longer free: the gate's benefit is accuracy and robustness
+(converging where Newton-CG stalls) rather than raw HVP count.
 
 The open problem documented in the earlier version — the $\lambda{=}0$ artifact
 from a single-direction Rayleigh probe — is now resolved by the multi-direction

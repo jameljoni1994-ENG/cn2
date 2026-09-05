@@ -63,7 +63,9 @@ We first record the two regimes the Nesterov phase encounters: the far field
 ### 2.1 Far-field transit (coarse navigation)
 
 **Lemma 1 (Descent / gradient decay under NAG with backtracking).**
-Under Assumption A, if the Nesterov phase uses the "NAG" momentum with an
+Under Assumption A, if the Nesterov phase uses the "NAG" momentum (constant
+$\beta=0.9$, the default `momentum="nag"`; the alternative `momentum="fista"`
+uses the ISTA $t$-schedule) with an
 Armijo-type backtracking, then it produces a monotone non-increasing objective
 and the gradients measured at the extrapolated points decay:
 
@@ -111,6 +113,9 @@ $$\lambda(x_{k};p)\le c\,\rho^k,\qquad
 \rho=1-\sqrt{\mu/L},\ c>0,$$
 
 i.e. $p\simeq1$: **linear** contraction of the entry measure in the near field.
+This is the rate realized by `momentum="fista"` (its $t$-schedule delivers the
+$\rho=1-\sqrt{\mu/L}$ gain); the default `momentum="nag"` reproduces all
+published numbers with its constant $\beta=0.9$.
 
 *Proof.* Restricting to the strongly convex basin, we may choose a Lyapunov
 function for NAG (the standard Nesterov accelerated gradient proof on the pair

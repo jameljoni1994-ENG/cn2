@@ -63,17 +63,18 @@ def newton_decrement(g, H, shift=1e-8):
     return float(np.sqrt(max(np.dot(g, p), 0.0)))
 
 
-def hessian_psd(H, tol=1e-10):
-    """Return True if the symmetric matrix H is (numerically) SPD with the
-    smallest eigenvalue effectively positive relative to its largest."""
+def hessian_psd(H, tol=1e-10, shift=1e-8):
+    """Return True if H + shift*I is numerically positive definite.
+
+    Cheap SPD test via a Cholesky factorization (O(n^3/3)) instead of a full
+    eigendecomposition (O(n^3) with a ~10x larger constant). Cholesky succeeds
+    iff all leading principal minors are positive, i.e. the matrix is SPD.
+    """
     try:
-        w = np.linalg.eigvalsh((H + H.T) / 2.0)
-    except np.linalg.LinAlgError:
+        np.linalg.cholesky((H + H.T) / 2.0 + shift * np.eye(H.shape[0]))
+        return True
+    except (np.linalg.LinAlgError, ValueError):
         return False
-    lam_max = w[-1]
-    if lam_max <= 0:
-        return False
-    return w[0] > max(tol, tol * abs(lam_max))
 
 
 def entry_measure(g, H, tau_g=None, shift=1e-8):
@@ -221,8 +222,9 @@ def newton(f, grad, hess, x0, tau_tol=1e-8, max_iter=200, shift=1e-8,
 # ----------------------------------------------------------------------
 # CN² v4 : Newton(2) -> evaluate -> Nesterov-until-entry -> loop
 # ----------------------------------------------------------------------
-def cn2(f, grad, hess, x0, tau, K0=10, L=None, alpha=None,
-        newton_steps=2, max_cycle=200, shift=1e-8, tau_g=None, verbose=False):
+def cn2(f, grad, hess, x0, tau, K0=20, L=None, alpha=None,
+        newton_steps=2, max_cycle=200, shift=1e-8, tau_g=None, momentum="nag",
+        verbose=False):
     """
     CN² final design (v4).
 
@@ -231,9 +233,21 @@ def cn2(f, grad, hess, x0, tau, K0=10, L=None, alpha=None,
       2. Evaluate the Newton decrement lambda at the current point.
       3. If lambda <= tau -> we are in the solution space -> STOP.
       4. Else (far) -> run Nesterov until lambda drops to <= tau,
-         checking lambda only rarely (K_ck, inverse in dimension), using a
-         stored/reused Hessian between checks to avoid re-computing it.
+         checking lambda only rarely (every K_ck steps, K_ck grows with
+         dimension and is floored/tuned by K0), using a fresh Hessian at
+         each re-check.
       5. Loop back to Newton from the new position.
+
+    Parameters
+    ----------
+    K0 : low-dimension probe cadence; the effective check cadence is
+        K_ck = max(K0, n/5). Increasing K0 re-checks the entry measure less
+        often (fewer Hessians, longer Nesterov bursts); decreasing it below
+        the n/5 floor has no effect.
+    momentum : "nag" (constant beta=0.9 lookahead momentum, the implemented
+        default and the variant measured in the paper) or "fista" (the
+        theoretically-optimal beta_k=(t_{k-1}-1)/t_k schedule, giving the
+        NAG rate rho = 1 - sqrt(mu/L) asserted in Lemma 3).
 
     Exactly matches the agreed spec:
       Q1: Nesterov stops when the Newton decrement itself hits tau.
@@ -255,9 +269,10 @@ def cn2(f, grad, hess, x0, tau, K0=10, L=None, alpha=None,
         return entry_measure(g, H, tau_g=tau_g, shift=shift)
 
     # check cadence: grows with dimension (larger n -> compute Hessian less
-    # often, per the agreed "inversely proportional" policy)
+    # often, per the agreed "inversely proportional" policy); K0 is the
+    # user-provided low-dimension floor for this cadence
     n = x.size
-    K_ck = max(20, int(n / 5))
+    K_ck = max(int(K0), int(n / 5))
 
     for cycle in range(max_cycle):
         # ---- 1) Newton: `newton_steps` steps ----
@@ -296,11 +311,17 @@ def cn2(f, grad, hess, x0, tau, K0=10, L=None, alpha=None,
 
         # ---- 4) far: Nesterov until entry ----
         num_steps = 0
+        t_fista = 1.0
         while True:
             # Nesterov K_ck steps
-            beta = 0.9 if num_steps > 0 else 0.0
             for _ in range(K_ck):
-                y = x + beta * (x - x_prev)
+                if momentum == "fista":
+                    t_next = (1.0 + np.sqrt(1.0 + 4.0 * t_fista ** 2)) / 2.0
+                    beta_k = (t_fista - 1.0) / t_next
+                    t_fista = t_next
+                else:  # "nag" (constant lookahead momentum, paper default)
+                    beta_k = 0.9 if num_steps > 0 else 0.0
+                y = x + beta_k * (x - x_prev)
                 gy = grad(y); counter.g += 1
                 if alpha is None:
                     a = 1.0 / L if L is not None else 1.0
@@ -340,6 +361,7 @@ def cn2(f, grad, hess, x0, tau, K0=10, L=None, alpha=None,
         "f_evals": counter.f,
         "hess_evals": counter.h,
         "iters": len(f_hist),
+        "k_ck": K_ck,
     }
 
 # ----------------------------------------------------------------------
@@ -368,6 +390,7 @@ class CostModel:
 
 
 def walltime(n, info):
-    hess_cost = max(1.0, (n ** 3) / (1.0 * n * n))  # ~ n flops relative to grad
-    hess_cost = max(1.0, n)  # solve is O(n^2)-ish vs grad O(n): ratio n
+    # Cost model: one Hessian build + dense solve costs ~O(n^2) flops vs
+    # ~O(n) for a gradient; ratio n. One documented line, no dead assignment.
+    hess_cost = max(1.0, float(n))
     return info["grad_evals"] * 1.0 + info["hess_evals"] * hess_cost
